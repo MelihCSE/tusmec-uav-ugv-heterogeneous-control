@@ -7,19 +7,36 @@
 * '/simulation': ArduPilot SITL simülasyon ortamı yapılandırmaları ve test notları.
 
 ## 2. Donanım Bileşenleri ve Bağlantı Şemaları
-*(Faz 1 için bileşen tabloları ve görseller buraya eklenecektir.)
+* UAV - GRAPH
 
 ```mermaid
 graph TD
-  BATTERY --> MCU
-  MCU -->|Synchronous Link| GPS
-  MCU --> ULTRASONIC_SENSOR
-  MCU -->|Digital I/O| IMU
-  MCU -->|Digital I/O| MOTOR_DRIVERS
-  MCU <-->|Asycnhronous Link| COMPUTER
-  COMPUTER <--> USB_CAMERA
-  MOTOR_DRIVERS -->|PWM| LEFT_MOTOR
-  MOTOR_DRIVERS -->|PWM| RIGHT_MOTOR
+  BATTERY --> POWER_MODULE
+  POWER_MODULE --> |5V| FLIGHT_CONTROLLER
+  POWER_MODULE --> |High-Power| ESC[ESC x4]
+  FLIGHT_CONTROLLER --> |PWM_SIGNAL| ESC
+  ESC --> MOTOR[x4]
+  GPS <-->|UART & I2C| FLIGHT_CONTROLLER
+  RC --> FLIGHT_CONTROLLER
+  TELEMETRI <-->|UART-MAVLink| FLIGHT_CONTROLLER
+  TELEMETRI <-.->|Radio Free - MAVLink| GCS
+```
+
+* UGV - GRAPH
+```mermaid
+graph TD
+  BATTERY -->|5V| BEC
+  BATTERY -->|Motor Power| MOTOR_DRIVER
+  BEC -->|5V| MCU
+  MCU -->|PWM| MOTOR_DRIVER
+  MOTOR_DRIVER --> L_MOTOR
+  MOTOR_DRIVER --> R_DRIVER
+  L_MOTOR --> ENCODER
+  R_MOTOR --> ENCODER
+  ENCODER -->|DIGITAL I/O| MCU
+  GPS <-->|UART & I2C| MCU
+  TELEMETRI <-->|UART - MAVLink| MCU
+  TELEMETRİ <-.->|Radio Freq - MAVLink| GCS
 ```
 
 ## 3. Kurulum ve Çalıştırma Adımları 
