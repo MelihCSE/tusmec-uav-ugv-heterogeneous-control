@@ -18,8 +18,8 @@ graph TD
   MCU -->|Digital I/O| MOTOR_DRIVERS
   MCU <-->|Asycnhronous Link| COMPUTER
   COMPUTER <--> CAMERA[USB]
-  MOTOR_DRIVERS -->|PWM| LEFT MOTOR
-  MOTOR_DRIVERS -->|PWM| RIGHT MOTOR
+  MOTOR_DRIVERS -->|PWM| LEFT_MOTOR
+  MOTOR_DRIVERS -->|PWM| RIGHT_MOTOR
 ```
 
 ## 3. Kurulum ve Çalıştırma Adımları 
