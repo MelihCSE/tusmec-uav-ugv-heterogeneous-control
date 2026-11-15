@@ -17,7 +17,7 @@ graph TD
   MCU -->|Digital I/O| IMU
   MCU -->|Digital I/O| MOTOR_DRIVERS
   MCU <-->|Asycnhronous Link| COMPUTER
-  COMPUTER <--> CAMERA[USB]
+  COMPUTER <--> USB_CAMERA
   MOTOR_DRIVERS -->|PWM| LEFT_MOTOR
   MOTOR_DRIVERS -->|PWM| RIGHT_MOTOR
 ```
