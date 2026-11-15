@@ -9,6 +9,19 @@
 ## 2. Donanım Bileşenleri ve Bağlantı Şemaları
 *(Faz 1 için bileşen tabloları ve görseller buraya eklenecektir.)
 
+```mermaid
+graph TD
+  BATTERY --> MCU
+  MCU -->|Synchronous Link| GPS
+  MCU --> ULTRASONIC_SENSOR
+  MCU -->|Digital I/O| IMU
+  MCU -->|Digital I/O| MOTOR_DRIVERS
+  MCU <-->|Asycnhronous Link| COMPUTER
+  COMPUTER <--> CAMERA[USB]
+  MOTOR_DRIVERS -->|PWM| LEFT MOTOR
+  MOTOR_DRIVERS -->|PWM| RIGHT MOTOR
+```
+
 ## 3. Kurulum ve Çalıştırma Adımları 
 1. **Simulasyonun başlatılması:** ...
 2. **Koordinatör Yazılımının Derlenmesi:** ...
