@@ -18,3 +18,6 @@
 
 ## 5. Simülasyon Test Videosu
 *(Ekran kaydı bağlantısı buraya eklenecektir.)
+
+## 6. Referanslar ve Literatür Taraması
+Projenin mimari tasarımı, simülasyon kurgusu ve heterojen koordinasyon mantığı oluşturulurken aşağıdaki akademik ve teknik kaynaklardan faydalanılmıştır:
