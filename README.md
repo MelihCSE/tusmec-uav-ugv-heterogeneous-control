@@ -18,8 +18,8 @@ graph TD
   ESC --> MOTOR[x4]
   GPS <-->|UART & I2C| FLIGHT_CONTROLLER
   RC --> FLIGHT_CONTROLLER
-  TELEMETRI <-->|UART-MAVLink| FLIGHT_CONTROLLER
-  TELEMETRI <-.->|Radio Free - MAVLink| GCS
+  TELEMETER <-->|UART-MAVLink| FLIGHT_CONTROLLER
+  TELEMETER <-.->|Radio Free - MAVLink| GCS
 ```
 
 * UGV - GRAPH
@@ -35,8 +35,8 @@ graph TD
   R_MOTOR --> ENCODER
   ENCODER -->|DIGITAL I/O| MCU
   GPS <-->|UART & I2C| MCU
-  TELEMETRI <-->|UART - MAVLink| MCU
-  TELEMETRİ <-.->|Radio Freq - MAVLink| GCS
+  TELEMETER <-->|UART - MAVLink| MCU
+  TELEMETER <-.->|Radio Freq - MAVLink| GCS
 ```
 
 ## 3. Kurulum ve Çalıştırma Adımları 
