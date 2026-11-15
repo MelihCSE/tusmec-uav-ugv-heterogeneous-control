@@ -112,11 +112,11 @@ graph TD
 *(Ekran kaydı bağlantısı buraya eklenecektir.)
 
 ## 6. Referanslar ve Literatür Taraması
-Projenin mimari tasarımı, simülasyon kurgusu ve heterojen koordinasyon mantığı oluşturulurken aşağıdaki akademik ve teknik kaynaklardan faydalanılmıştır:
-gemini.google.com
-www.mdpi.com
-www.ardupilot.org/
-mavlink.io
-https://www.researchgate.net/figure/Structure-of-a-MAVLink-frame_fig3_339216647
-[arxiv.org](https://arxiv.org/html/2412.12776v2)
+# Akademik Kaynakça ve Literatür
+• gemini.google.com
+• www.mdpi.com
+• www.ardupilot.org/
+• mavlink.io
+• https://www.researchgate.net/figure/Structure-of-a-MAVLink-frame_fig3_339216647
+[• arxiv.org](https://arxiv.org/html/2412.12776v2)
 
