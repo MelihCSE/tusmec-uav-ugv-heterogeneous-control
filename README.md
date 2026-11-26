@@ -102,21 +102,104 @@ graph TD
 ```
 
 ## 3. Kurulum ve Çalıştırma Adımları 
-1. **Simulasyonun başlatılması:** ...
-2. **Koordinatör Yazılımının Derlenmesi:** ...
+### Gereksinimler
+* **İşletim Sistemi:** Linux (Ubuntu 22.04+), macOS veya Windows (WSL2)
+* **Derleyici & Araçlar:** `gcc` veya `clang`, `make`
+* **Simülasyon & Yer Kontrol İstasyonu:** Docker, QGroundControl (veya Mission Planner)
+
+**Virtual Firmwares:**
+* İHA (ArduCopter): [https://firmware.ardupilot.org/Copter/stable/SITL_x86_64_linux_gnu/arducopter](https://firmware.ardupilot.org/Copter/stable/SITL_x86_64_linux_gnu/arducopter)
+* İKA (ArduRover): [https://firmware.ardupilot.org/Rover/stable/SITL_x86_64_linux_gnu/ardurover](https://firmware.ardupilot.org/Rover/stable/SITL_x86_64_linux_gnu/ardurover)
+
+---
+
+1. ### 1. Simülasyonun Başlatılması (ArduPilot SITL)
+İHA ve İKA örneklerinin birbirinden bağımsız MAVLink kimlikleri (`SYSID`) ve TCP portları üzerinden haberleşebilmesi için iki ayrı terminalde aşağıdaki Docker konteynerleri başlatılır:
+
+* **Terminal 1 — UAV (ArduCopter | SYSID: 1 | Port: 5762):**
+```bash
+docker run -it --rm --name uav_sitl \
+  -p 5760:5760 -p 5762:5762 \
+  --platform linux/amd64 ubuntu:22.04 bash -c "
+  apt-get update && apt-get install -y curl && \
+  curl -L [https://firmware.ardupilot.org/Copter/stable/SITL_x86_64_linux_gnu/arducopter](https://firmware.ardupilot.org/Copter/stable/SITL_x86_64_linux_gnu/arducopter) -o /usr/local/bin/arducopter && \
+  chmod +x /usr/local/bin/arducopter && \
+  /usr/local/bin/arducopter -S -I0 --home 42.3900,-71.1476,14,0 --model + --sysid 1"
+```
+
+* **Terminal 2 - UGV (ArduRover | STSID: 2 | Port: 5772)**
+```bash
+docker run -it --rm --name ugv_sitl \
+  -p 5770:5770 -p 5772:5772 \
+  --platform linux/amd64 ubuntu:22.04 bash -c "
+  apt-get update && apt-get install -y curl && \
+  curl -L [https://firmware.ardupilot.org/Rover/stable/SITL_x86_64_linux_gnu/ardurover](https://firmware.ardupilot.org/Rover/stable/SITL_x86_64_linux_gnu/ardurover) -o /usr/local/bin/ardurover && \
+  chmod +x /usr/local/bin/ardurover && \
+  /usr/local/bin/ardurover -S -I1 --home 42.3902,-71.1476,14,0 --model rover --sysid 2"
+```
+
+2. **Koordinatör Yazılımının Derlenmesi ve Çalıştırılması:**
+   Simülasyon ortamında her iki aracın da GPS kilidi aldığı (`EKF3 IMU0 is using GPS`) doğrulandıktan sonra **üçüncü bir terminal** açılarak proje ana dizinine geçilir, `Makefile` üzerinden yazılım derlenir ve başlatılır:
+
+```bash
+# Proje ana dizinine girin
+cd MAVLink_System
+
+# Linux ve macOS ortamlarını Makefile ile derleyin
+make clean && make
+
+# Heterojen koordinasyon yazılımını başlatın
+./mission_app
+```
 
 ## 4. Uygulanan Algoritma ve Senaryo
-* **Senaryo:** İHa belirlenen alanı tarar ve tespit ettiği hedef konumu koordinatöre iletir, koordinatör bu hedefe gitme görevini İKA'ya atar.
+
+### 4.1 Alan Tarama Algoritması: Boustrophedon (Lawnmower)
+Bu projede İHA'nın belirlenen görev sahasını eksiksiz ve enerji verimli şekilde taraması için **Boustrophedon (Biçerdöver) Kapsama Yolu Planlama** algoritması uygulanmıştır.
+
+* **Çalışma Prensibi:**
+  1. İHA'nın GPS kilidi aldığı başlangıç konumu merkez alınarak dikdörtgen bir tarama bölgesi tanımlanır.
+  2. Belirlenen tarama aralığına (*step size*) göre alan paralel şeritlere bölünür.
+  3. İHA her şerit sonunda başlangıç noktasına geri dönmek yerine ardışık şeritleri zıt yönlerde (ileri–geri zigzag) takip edecek şekilde ara noktalar (*waypoints*) üretilir.
+  4. Yerel metre cinsinden hesaplanan $(x, y)$ ofsetleri, Dünya yarıçapı ve enlem kosinüsü düzeltmesi kullanılarak gerçek GPS koordinatlarına (`latitude`, `longitude`) dönüştürülür.
+
+* **Seçim Gerekçesi:**
+  * **Tam Kapsama Garantisi:** Açık ve dışbükey alanlarda kör nokta bırakmadan %100 görsel/sensör kapsaması sağlar.
+  * **Enerji ve Zaman Verimliliği:** Dönüş manevralarını ve boşta kat edilen mesafeyi en aza indirerek batarya ömrü kısıtlı olan İHA'ların görev süresini optimize eder.
+  * **Düşük Hesaplama Maliyeti:** Gömülü C ortamında dinamik bellek karmaşıklığı yaratmadan gerçek zamanlı ve deterministik olarak rota üretebilir.
+
+---
+
+### 4.2 Uçtan Uca Görev Senaryosu ve Durum Makinesi
+Heterojen sürü koordinasyonu, araç tipinden bağımsız çalışan polimorfik `Vehicle_t` (`VTable`) arayüzü üzerinde 5 aşamalı bir **Sonlu Durum Makinesi (Finite State Machine)** ile yürütülür:
+
+1. **`STATE_INIT` (Başlatma ve Rota Üretimi):**
+   * İHA (`SYSID: 1`) ve İKA (`SYSID: 2`) ile TCP/MAVLink bağlantıları kurulur ve 10 Hz telemetri akışı başlatılır.
+   * Her iki araçtan ilk geçerli GPS verisi alındığında Boustrophedon planlayıcı çalıştırılarak tarama noktaları oluşturulur.
+2. **`STATE_TAKEOFF` (Kalkış ve Hazırlık):**
+   * İHA `GUIDED` moda alınır, motorları `ARM` edilir ve `MAV_CMD_NAV_TAKEOFF` komutu ile hedef tarama irtifasına (15 m) yükseltilir.
+   * Eş zamanlı olarak İKA `GUIDED` moda alınıp `ARM` edilerek sürüşe hazır bekletilir.
+3. **`STATE_SCAN` (Otonom Alan Taraması):**
+   * İHA üretilen tarama noktalarını sırayla takip eder; her noktaya varış **Haversine** küresel mesafe formülü ile denetlenir.
+   * Tarama sırasında belirlenen sanal hedef bölgesine girildiğinde hedef tespiti tetiklenir.
+4. **`STATE_UGV_ASSIGN` (Eş Zamanlı Görev Atama):**
+   * Tespit edilen hedefin GPS koordinatları koordinatöre iletilir ve koordinatör bu noktaya gitme görevini İKA'ya atar.
+   * İKA hedefe doğru ilerlerken İHA alan tarama görevine kesintisiz devam eder.
+5. **`STATE_MISSION_COMPLETE` (Görev Tamamlama ve Güvenli Sonlandırma):**
+   * İKA hedef konuma belirlenen varış toleransı içerisine girdiğinde `HOLD` moduna geçerek durur.
+   * İHA güvenli iniş (`LAND`) moduna alınır ve görev başarıyla sonlandırılır.
 
 ## 5. Simülasyon Test Videosu
-*(Ekran kaydı bağlantısı buraya eklenecektir.)
+
+* Uçtan uca senaryo akışını (İHA kalkışı, Boustrophedon alan taraması, hedef tespiti, İKA görev ataması ve hedefe varış) içeren test kaydına aşağıdaki YouTube bağlantısından ulaşabilirsiniz:
+* [İHA–İKA Heterojen Sürü Koordinasyonu Test Kaydı](https://youtu.be/VIDEO_ID_BURAYA)
 
 ## 6. Referanslar ve Literatür Taraması
-# Akademik Kaynakça ve Literatür
-• gemini.google.com
-• www.mdpi.com
-• www.ardupilot.org/
-• mavlink.io
-• https://www.researchgate.net/figure/Structure-of-a-MAVLink-frame_fig3_339216647
-[• arxiv.org](https://arxiv.org/html/2412.12776v2)
+**Akademik Kaynakça ve Literatür**
+* gemini.google.com
+* www.mdpi.com
+* www.ardupilot.org/
+* mavlink.io
+* https://www.researchgate.net/figure/Structure-of-a-MAVLink-frame_fig3_339216647
+* [arxiv.org](https://arxiv.org/html/2412.12776v2)
 
