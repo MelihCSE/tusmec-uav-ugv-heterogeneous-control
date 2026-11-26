@@ -105,7 +105,7 @@ graph TD
 ### Gereksinimler
 * **İşletim Sistemi:** Linux (Ubuntu 22.04+), macOS veya Windows (WSL2)
 * **Derleyici & Araçlar:** `gcc` veya `clang`, `make`
-* **Simülasyon & Yer Kontrol İstasyonu:** Docker, QGroundControl (veya Mission Planner)
+* **Simülasyon & Yer Kontrol İstasyonu:** Docker, QGroundControl
 
 **Virtual Firmwares:**
 * İHA (ArduCopter): [https://firmware.ardupilot.org/Copter/stable/SITL_x86_64_linux_gnu/arducopter](https://firmware.ardupilot.org/Copter/stable/SITL_x86_64_linux_gnu/arducopter)
@@ -154,7 +154,7 @@ make clean && make
 
 ## 4. Uygulanan Algoritma ve Senaryo
 
-### 4.1 Alan Tarama Algoritması: Boustrophedon (Lawnmower)
+### 4.1 Alan Tarama Algoritması: Boustrophedon 
 Bu projede İHA'nın belirlenen görev sahasını eksiksiz ve enerji verimli şekilde taraması için **Boustrophedon (Biçerdöver) Kapsama Yolu Planlama** algoritması uygulanmıştır.
 
 * **Çalışma Prensibi:**
@@ -192,7 +192,7 @@ Heterojen sürü koordinasyonu, araç tipinden bağımsız çalışan polimorfik
 ## 5. Simülasyon Test Videosu
 
 * Uçtan uca senaryo akışını (İHA kalkışı, Boustrophedon alan taraması, hedef tespiti, İKA görev ataması ve hedefe varış) içeren test kaydına aşağıdaki YouTube bağlantısından ulaşabilirsiniz:
-* [İHA–İKA Heterojen Sürü Koordinasyonu Test Kaydı](https://youtu.be/VIDEO_ID_BURAYA)
+* [İHA–İKA Heterojen Sürü Koordinasyonu Test Kaydı](https://www.youtube.com/watch?v=6VOp2Cag1vo)
 
 ## 6. Referanslar ve Literatür Taraması
 **Akademik Kaynakça ve Literatür**
